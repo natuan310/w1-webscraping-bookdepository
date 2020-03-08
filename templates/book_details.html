@@ -9,7 +9,7 @@
             <ul class="list-group list-group-flush pt-3 pb-3 pl-3 pr-3 mt-3" style="background-color:#F7F0F5;">
                 <h3 style="text-align:center;">Top Category</h3>
                 {% for cat in categories %}
-                <a href="{{ cat.cate_url }}" class="list-group-item list-group-item-action"
+                <a href="{{ url_for('booktype', btype=cat.cate_url) }}" class="list-group-item list-group-item-action"
                     style="background-color:#F7F0F5;">{{ cat.category }}</a>
                 {% endfor %}
             </ul>

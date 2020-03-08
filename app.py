@@ -98,8 +98,7 @@ category = crawl_category(base_url)
 @app.route('/')
 def index():
     books = crawl_bookrepo(base_url)
-    # category = crawl_category(base_url)
-    return render_template('index.html', books=books[:20], categories = category)
+    return render_template('index.html', books=books, categories = category)
 
 
 @app.route('/detail/<int:id>', methods=['POST', 'GET'])
