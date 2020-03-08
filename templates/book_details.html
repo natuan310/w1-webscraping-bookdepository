@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="container-fluid" style="background-color:#F7F0F5; min-height:60%;">
+
+    <div class="row">
+        <!-- Category -->
+        <div class="col-3">
+            <ul class="list-group list-group-flush pt-3 pb-3 pl-3 pr-3 mt-3" style="background-color:#F7F0F5;">
+                <h3 style="text-align:center;">Top Category</h3>
+                {% for cat in categories %}
+                <a href="{{ cat.cate_url }}" class="list-group-item list-group-item-action"
+                    style="background-color:#F7F0F5;">{{ cat.category }}</a>
+                {% endfor %}
+            </ul>
+        </div>
+
+
+        <!-- BOOKS LIST -->
+        <div class="col-9 pt-3 pb-3 pl-3 pr-3 mt-3">
+
+            <div class="row">
+                {% for detail in details %}
+                <div class="col-3">
+                    <img class="img-fluid" alt="Responsive image" src="{{ detail.img_url}}" alt="book cover">
+                </div>
+                <div class="col-6 pl-2">
+                    <h2 class="card-title">{{ detail.title }}</h2>
+                    <p>{{ detail.language }}</p>
+                    <p>By (author) {{ detail.author }}</p>
+                    <h5>Description</h5>
+                    <p style="text-align: justify;">{{ detail.description }}</p>
+                </div>
+                <div class="col-3">
+                    <p style="font-size: 40px; color:#9D3032;">{{ detail.price }}</p>
+                    <div class="free-delivery-text">
+                        <i class="icon-rocket"></i>
+                        <p>Free delivery worldwide</p>
+                    </div>
+                    <div class="availability-text">
+                        <i class="icon-check"></i>
+                        <p>
+                            Available. Dispatched from the UK in 2 business days<br>
+                            <a target="_blank" href="/help/topic/HelpId/2/When-will-my-order-arrive" style="color: #5C5552;">When will my order
+                                arrive?</a>
+                        </p>
+                    </div>
+                    <div class="btn-wrap">
+                        <div class="copy-content visible-xs visible-sm" data-target=".item-price-wrap">
+                         
+                        </div>
+                        <button type="button" class="btn btn-outline-dark btn-sm"
+                                        style="background-color: #5C5552; color:bisque">Add to basket</button>
+                        <a rel="nofollow" href="/account/wishlistItemUpdate?mainAction=add&amp;isbn13=9781409181637"
+                            data-isbn="9781409181637" class="btn btn-grey add-to-wishlist" style="color: #5C5552;">
+                            Add to wishlist</a>
+                        
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+</div>
+{% endblock %}
