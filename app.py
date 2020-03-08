@@ -139,7 +139,7 @@ def author(author):
 def booktype(btype):
     """ route booktype to search book by category
     """
-    cate = btype.strip('category/')[2:].replace('-', ' ')  # convert btype path to category
+    cate = btype[btype.rfind('/')+1:].replace('-', ' ')  # convert btype path to category
     url = base_url + str(btype)  # convert btype to author url
     books = crawl_bookrepo(url)
     return render_template('search_type.html', cate=cate, books=books, categories=category)
