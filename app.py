@@ -8,6 +8,7 @@ app = Flask(__name__)
 base_url = 'https://www.bookdepository.com/'
 search_url = 'https://www.bookdepository.com/search?searchTerm='
 
+
 def get_url(url):
     r = requests.get(url)
     return BeautifulSoup(r.text, 'html.parser')
@@ -16,7 +17,7 @@ def get_url(url):
 def crawl_bookrepo(url):
     soup = get_url(url)
     books = soup.find_all('div', class_='book-item')
-    
+
     data = []
     for book in books:
         b = {'id': '', 'title': '', 'author': '', 'author_url': '',
@@ -25,7 +26,8 @@ def crawl_bookrepo(url):
             b['id'] = re.findall(r'\d{13}', book.a['href'])[0]
             b['title'] = book.img['alt']
             b['author'] = book.select_one('span[itemprop=name]').string
-            b['author_url'] = book.select_one('a[itemprop=url]')['href'].replace('/author/', '')
+            b['author_url'] = book.select_one('a[itemprop=url]')[
+                'href'].replace('/author/', '')
             b['price'] = book.select_one('p[class=price]').string
             b['img_url'] = book.img['data-lazy']
             b['link'] = book.a['href']
@@ -35,23 +37,26 @@ def crawl_bookrepo(url):
             data.append(b)
     return data
 
+
 def crawl_search(url):
     soup = get_url(url)
     books = soup.find_all('div', class_='book-item')
-    
+
     data = []
     for book in books:
         b = {'id': '', 'title': '', 'author': '', 'author_url': '',
-            'price': '', 'price-save': '', 'img_url': '', 'link': ''}
-        # https://www.shareicon.net/data/256x256/2016/01/24/708046_document_512x512.png  uploading photo 
+             'price': '', 'price-save': '', 'img_url': '', 'link': ''}
+        # https://www.shareicon.net/data/256x256/2016/01/24/708046_document_512x512.png  uploading photo
         try:
             b['id'] = re.findall(r'\d{13}', book.a['href'])[0]
             b['title'] = book.img['alt']
             b['author'] = book.select_one('a[itemprop=author]').get_text()
             b['author_url'] = book.select_one('a[itemprop=author]')[
                 'href'].replace('/author/', '')
-            b['price'] = book.select_one('p[class=price]').get_text().strip().split('\n                            \xa0')[0]
-            b['price-save'] = b['price'] = book.select_one('p[class=price]').get_text().strip().split('\n                            \xa0')[1]
+            b['price'] = book.select_one('p[class=price]').get_text(
+            ).strip().split('\n                            \xa0')[0]
+            b['price-save'] = b['price'] = book.select_one('p[class=price]').get_text(
+            ).strip().split('\n                            \xa0')[1]
             b['img_url'] = book.img['data-lazy']
             if b['img_url'] == '':
                 b['img_url'] = book.img['src']
@@ -61,6 +66,7 @@ def crawl_search(url):
         if b['img_url']:
             data.append(b)
     return data
+
 
 def crawl_category(url):
     soup = get_url(url)
@@ -93,53 +99,56 @@ def crawl_book_detail(url):
     #     print(i)
     return data
 
-category = crawl_category(base_url)
 
-@app.route('/')
-def index():
-    books = crawl_bookrepo(base_url)
-    return render_template('index.html', books=books, categories = category)
+category = crawl_category(base_url)  # get category items using for all route
+
+@app.route('/index/', defaults={'page': 1})
+@app.route('/index/<int:page>', methods=['POST', 'GET'])
+@app.route('/', defaults={'page': 1})
+def index(page):
+    """ route index with pagination by list slice
+    """
+    books_data = crawl_bookrepo(base_url)
+    book_topfive = books_data[:5]  # top five item for bestsellers section
+    books = books_data[(page-1)*16+5:page*16+5] # 16 books per page
+
+    return render_template('index.html', page=page, books=books, book_topfive=book_topfive, categories=category)
 
 
 @app.route('/detail/<int:id>', methods=['POST', 'GET'])
 def detail(id):
-    print(id)
-    # detail_url = base_url + '*/' + str(id)
-    detail_url = base_url + '*/' + str(id)
+    """ route detail with book id
+    """
+    detail_url = base_url + '*/' + str(id)  # convert book id to detail url
     details = crawl_book_detail(detail_url)
-    
+
     return render_template('book_details.html', details=details, categories=category)
 
 
 @app.route('/author/<author>', methods=['POST', 'GET'])
 def author(author):
-    url = base_url + 'author/' + str(author)
+    """ route author with author href
+    """
+    url = base_url + 'author/' + str(author)  # convert author to author url
     books = crawl_bookrepo(url)
-    author_name = author.replace('-', ' ')
+    author_name = author.replace('-', ' ') # convert author path to author name
     return render_template('search_author.html', author_name=author_name, books=books, categories=category)
+
 
 @app.route('/booktype/<path:btype>')
 def booktype(btype):
-    
-    # category = crawl_category(base_url)
-    if btype == 'bestsellers':
-        cate = 'Bestsellers'
-        url = 'https://www.bookdepository.com/bestsellers'
-    elif btype == 'top-new-releases':
-        cate = 'New Release'
-        url = 'https://www.bookdepository.com/top-new-releases'
-    elif btype == 'comingsoon':
-        cate = 'Coming Soon'
-        url = 'https://www.bookdepository.com/comingsoon'
-    else:
-        cate = btype[btype.rfind('/') + 1:].replace('-', ' ')
-        url = base_url + str(btype)
+    """ route booktype to search book by category
+    """
+    cate = btype.strip('category/')[2:].replace('-', ' ')  # convert btype path to category
+    url = base_url + str(btype)  # convert btype to author url
     books = crawl_bookrepo(url)
     return render_template('search_type.html', cate=cate, books=books, categories=category)
 
+
 @app.route('/navtype/<btype>')
 def navtype(btype):
-    # category = crawl_category(base_url)
+    """ route navtype to search book by nav bar category
+    """
     if btype == 'bestsellers':
         cate = 'Bestsellers'
         # url = 'https://www.bookdepository.com/bestsellers'
@@ -149,19 +158,22 @@ def navtype(btype):
     elif btype == 'comingsoon':
         cate = 'Coming Soon'
         # url = 'https://www.bookdepository.com/comingsoon'
-    url = base_url + str(btype)
+    url = base_url + str(btype)  # convert to url
     books = crawl_search(url)
     return render_template('search_type.html', cate=cate, books=books, categories=category)
 
-@app.route('/search', methods=['POST'])
+
+@app.route('/search', methods=['POST', 'GET'])
 def search():
+    """ route search to search book by keyword from input
+    """
     keyword = request.form['search']
-    print(keyword)
     # https://www.bookdepository.com/search?searchTerm=Machine+LEArning&search=Find+book
-    url = search_url + keyword.replace(' ', '+') + '&search=Find+book'
+    url = search_url + keyword.replace(' ', '+') + '&search=Find+book'  # convert url
     books = crawl_bookrepo(url)
-    cate = 'Search result for "%s"'%keyword
-    return render_template('search_type.html', cate=cate, books=books[:20], categories = category)
+    cate = 'Search result for "%s"' % keyword
+    return render_template('search_type.html', cate=cate, books=books[:20], categories=category)
+
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=8000, debug=True)

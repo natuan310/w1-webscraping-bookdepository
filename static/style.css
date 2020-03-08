@@ -72,11 +72,16 @@ body {
     transform: translateY(250px);
     -webkit-transform: translateY(250px);
 }
+.container-fluid {
+    background-color:#F7F0F5;
+    position: relative;
+}
 
 p .book-price {
     color: #9D3032;
     font-weight: 40;
 }
+
 
 
 .footer .alert-link {
